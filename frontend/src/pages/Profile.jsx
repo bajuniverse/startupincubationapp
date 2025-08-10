@@ -7,6 +7,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    role: '',
     university: '',
     address: '',
   });
@@ -23,6 +24,7 @@ const Profile = () => {
         setFormData({
           name: response.data.name,
           email: response.data.email,
+          role: response.data.role,
           university: response.data.university || '',
           address: response.data.address || '',
         });
@@ -73,6 +75,15 @@ const Profile = () => {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
         />
+        <select
+          value={formData.role}
+          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          className="w-full mb-4 p-2 border rounded"
+        >
+          <option value="admin">Admin</option>
+          <option value="mentor">Mentor</option>
+          <option value="applicant">Applicant</option>
+        </select>
         <input
           type="text"
           placeholder="University"
