@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'package.json'
+      - '.github/workflows/ci.yml'
 
 
 jobs:
   test:
     name: Run Tests
-    # name: test_disabled
     runs-on: self-hosted
 
     strategy:
@@ -43,21 +47,21 @@ jobs:
     - run: pm2 stop all
 
     # Install dependencies for backend
-    # - name: Install Backend Dependencies
-    #   working-directory: ./backend
-    #   run: | 
-    #    npm install --global yarn
-    #    yarn --version
-    #    yarn install
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: | 
+       npm install --global yarn
+       yarn --version
+       yarn install
       
     # Install dependencies for frontend
-    # - name: Install Frontend Dependencies
-    #   working-directory: ./frontend
-    #   run: |
-    #     df -h
-    #     sudo rm -rf ./build
-    #     yarn install
-    #     yarn run build
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: |
+        df -h
+        sudo rm -rf ./build
+        yarn install
+        yarn run build
 
 
     # Run backend tests
