@@ -88,7 +88,7 @@ const Profile = () => {
           value={formData.role}
           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
-          
+          disabled={user.role !== "admin"}
         >
           <option value="admin">Admin</option>
           <option value="mentor">Mentor</option>
