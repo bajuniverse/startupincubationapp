@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
+import { useNavigate } from 'react-router-dom';
+import RequireAuth from '../components/RequireAuth';
 
 const Profile = () => {
   const { user } = useAuth(); // Access user token from context
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +17,12 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Redirect to login if not authenticated
+    // if (!user || !user.token) {
+    //   navigate('/login');
+    //   return;
+    // }
+
     // Fetch profile data from the backend
     const fetchProfile = async () => {
       setLoading(true);
@@ -35,11 +44,16 @@ const Profile = () => {
       }
     };
 
-    if (user) fetchProfile();
-  }, [user]);
+    fetchProfile();
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // if (!user || !user.token) {
+    //   alert('You must be logged in to update your profile.');
+    //   navigate('/login');
+    //   return;
+    // }
     setLoading(true);
     try {
       await axiosInstance.put('/api/auth/profile', formData, {
@@ -106,4 +120,11 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+// export default Profile;
+export default function ProtectedProfile() {
+  return (
+    <RequireAuth>
+      <Profile />
+    </RequireAuth>
+  );
+};
