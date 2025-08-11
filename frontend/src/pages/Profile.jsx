@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
-import { useNavigate } from 'react-router-dom';
 import RequireAuth from '../components/RequireAuth';
 
 const Profile = () => {
   const { user } = useAuth(); // Access user token from context
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,12 +15,6 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Redirect to login if not authenticated
-    // if (!user || !user.token) {
-    //   navigate('/login');
-    //   return;
-    // }
-
     // Fetch profile data from the backend
     const fetchProfile = async () => {
       setLoading(true);
@@ -45,19 +37,22 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, [user, navigate]);
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // if (!user || !user.token) {
-    //   alert('You must be logged in to update your profile.');
-    //   navigate('/login');
-    //   return;
-    // }
     setLoading(true);
+
     try {
-      await axiosInstance.put('/api/auth/profile', formData, {
+      const response = await axiosInstance.put('/api/auth/profile', formData, {
         headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setFormData({...formData,
+        name: response.data.name,
+        email: response.data.email,
+        role: response.data.role,
+        university: response.data.university || '',
+        address: response.data.address || '',
       });
       alert('Profile updated successfully!');
     } catch (error) {
@@ -93,6 +88,7 @@ const Profile = () => {
           value={formData.role}
           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
+          
         >
           <option value="admin">Admin</option>
           <option value="mentor">Mentor</option>
@@ -112,7 +108,7 @@ const Profile = () => {
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
         />
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded" disabled={loading}>
           {loading ? 'Updating...' : 'Update Profile'}
         </button>
       </form>

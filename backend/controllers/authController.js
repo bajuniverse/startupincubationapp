@@ -48,7 +48,7 @@ const updateUserProfile = async (req, res) => {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const { name, email, university, address } = req.body;
+        const { name, email, role, university, address } = req.body;
         user.name = name || user.name;
         user.email = email || user.email;
         user.role = role || user.role;
