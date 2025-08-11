@@ -8,7 +8,8 @@ on:
 
 jobs:
   test:
-    name: Run Tests
+    # name: Run Tests
+    name: test_disabled
     runs-on: self-hosted
 
     strategy:
