@@ -14,7 +14,11 @@ const getTasks = async (req, res) => {
 const addTask = async (req, res) => {
     const { title, description, deadline } = req.body;
     try {
-        const task = await Task.create({ userId: req.user.id, title, description, deadline });
+        const task = await Task.create({ 
+            userId: req.user.id, 
+            title, 
+            description, 
+            deadline });
         res.status(201).json(task);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -23,14 +27,17 @@ const addTask = async (req, res) => {
 
 // Update Task
 const updateTask = async (req, res) => {
-    const { title, description, deadline } = req.body;
+    const { title, description, completed, deadline } = req.body;
     try {
         const task = await Task.findById(req.params.id);
-        if (task) return res.status(404).json({ message: 'Task not found' });
         
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
         task.title = title || task.title;
         task.description = description || task.description;
-        // task.completed = completed || task.completed;
+        task.completed = completed || task.completed;
         task.deadline = deadline || task.deadline;
 
         const updatedTask = await task.save();

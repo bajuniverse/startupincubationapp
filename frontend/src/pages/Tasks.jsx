@@ -3,6 +3,7 @@ import axiosInstance from '../axiosConfig';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import { useAuth } from '../context/AuthContext';
+import RequireAuth from '../components/RequireAuth';
 
 const Tasks = () => {
   const { user } = useAuth();
@@ -37,4 +38,11 @@ const Tasks = () => {
   );
 };
 
-export default Tasks;
+// export default Tasks;
+export default function ProtectedTasks() {
+  return (
+    <RequireAuth>
+      <Tasks />
+    </RequireAuth>
+  );
+};
