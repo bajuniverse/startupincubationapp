@@ -14,9 +14,15 @@ const registerUser = async (req, res) => {
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
         const user = await User.create({ name, email, role, password });
-        res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role, token: generateToken(user.id) });
+        res.status(201).json({ 
+            id: user.id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role, 
+            token: generateToken(user.id) 
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -25,18 +31,26 @@ const loginUser = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (user && (await bcrypt.compare(password, user.password))) {
-            res.json({ id: user.id, name: user.name, email: user.email, token: generateToken(user.id) });
+            res.json({ 
+                id: user.id, 
+                name: user.name, 
+                email: user.email, 
+                token: generateToken(user.id) 
+            });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -46,7 +60,9 @@ const getProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
         const { name, email, role, university, address } = req.body;
         user.name = name || user.name;
@@ -56,9 +72,18 @@ const updateUserProfile = async (req, res) => {
         user.address = address || user.address;
 
         const updatedUser = await user.save();
-        res.json({ id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, role: updatedUser.role, university: updatedUser.university, address: updatedUser.address, token: generateToken(updatedUser.id) });
+
+        res.json({ 
+            id: updatedUser.id, 
+            name: updatedUser.name, 
+            email: updatedUser.email, 
+            role: updatedUser.role, 
+            university: updatedUser.university, 
+            address: updatedUser.address, 
+            token: generateToken(updatedUser.id) 
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 

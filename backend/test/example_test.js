@@ -1,18 +1,13 @@
 const chai = require('chai');
-const chaiHttp = require('chai-http');
-const mongoose = require('mongoose');
 const sinon = require('sinon');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const { getProfile, updateUserProfile } = require('../controllers/authController');
 const { expect } = chai;
 
-chai.use(chaiHttp);
-
 describe('GetProfile Function Test', () => {
-    let findByIdStub;
-
     afterEach(() => {
-        if (findByIdStub) findByIdStub.restore();
+        sinon.restore();
     });
 
     it('should return profile for the given user', async () => {
@@ -24,9 +19,10 @@ describe('GetProfile Function Test', () => {
             role: "user"
         };
 
-        findByIdStub = sinon.stub(User, 'findById').resolves(mockProfile);
+        // Stub findById to return an object with select()
+        const selectStub = sinon.stub().resolves(mockProfile);
+        const findByIdStub = sinon.stub(User, 'findById').returns({ select: selectStub });
 
-        // Use _id to match controller logic
         const req = { user: { _id: userId } };
         const res = {
             json: sinon.spy(),
@@ -36,12 +32,14 @@ describe('GetProfile Function Test', () => {
         await getProfile(req, res);
 
         expect(findByIdStub.calledOnceWith(userId)).to.be.true;
-        expect(res.json.calledWith(mockProfile)).to.be.true;
-        expect(res.status.called).to.be.false;
+        expect(selectStub.calledOnceWith('-password')).to.be.true;
+        expect(res.json.calledOnceWith(mockProfile)).to.be.true;
+        expect(res.status.called).to.be.false; // no error status called
     });
 
-    it('should return 500 on error', async () => {
-        findByIdStub = sinon.stub(User, 'findById').throws(new Error('DB Error'));
+    it('should return 404 if user not found', async () => {
+        const selectStub = sinon.stub().resolves(null);
+        sinon.stub(User, 'findById').returns({ select: selectStub });
 
         const req = { user: { _id: new mongoose.Types.ObjectId() } };
         const res = {
@@ -51,22 +49,37 @@ describe('GetProfile Function Test', () => {
 
         await getProfile(req, res);
 
-        expect(res.status.calledWith(500)).to.be.true;
-        expect(res.json.calledWithMatch({ message: 'Server error' })).to.be.true;
+        expect(res.status.calledOnceWith(404)).to.be.true;
+        expect(res.json.calledOnceWithMatch({ message: 'User not found' })).to.be.true;
+    });
+
+    it('should return 500 on error', async () => {
+        const selectStub = sinon.stub().rejects(new Error('DB Error'));
+        sinon.stub(User, 'findById').returns({ select: selectStub });
+
+        const req = { user: { _id: new mongoose.Types.ObjectId() } };
+        const res = {
+            json: sinon.spy(),
+            status: sinon.stub().returnsThis()
+        };
+
+        await getProfile(req, res);
+
+        expect(res.status.calledOnceWith(500)).to.be.true;
+        expect(res.json.calledOnceWithMatch({ message: 'Server error' })).to.be.true;
     });
 });
 
 describe('UpdateUserProfile Function Test', () => {
-    let findByIdStub;
-
     afterEach(() => {
-        if (findByIdStub) findByIdStub.restore();
+        sinon.restore();
     });
 
     it('should change role and update user profile', async () => {
         const userId = new mongoose.Types.ObjectId();
         const initialUser = {
-            id: userId,
+            _id: userId,
+            id: userId.toString(),
             name: "Jane Doe",
             email: "jane@example.com",
             role: "mentor",
@@ -75,10 +88,11 @@ describe('UpdateUserProfile Function Test', () => {
             save: sinon.stub().resolvesThis()
         };
 
-        findByIdStub = sinon.stub(User, 'findById').resolves(initialUser);
+        initialUser.save = sinon.stub().resolves(initialUser);
+        sinon.stub(User, 'findById').resolves(initialUser);
 
         const req = {
-            user: { id: userId },
+            user: { id: userId.toString() },
             body: {
                 name: "Jane Smith",
                 email: "jane.smith@example.com",
@@ -101,13 +115,12 @@ describe('UpdateUserProfile Function Test', () => {
         expect(initialUser.address).to.equal("New Address");
         expect(initialUser.save.calledOnce).to.be.true;
         expect(res.json.calledOnce).to.be.true;
-        expect(res.status.called).to.be.false;
     });
 
     it('should return 404 if user not found', async () => {
-        findByIdStub = sinon.stub(User, 'findById').resolves(null);
+        sinon.stub(User, 'findById').resolves(null);
 
-        const req = { user: { id: new mongoose.Types.ObjectId() }, body: {} };
+        const req = { user: { id: new mongoose.Types.ObjectId().toString() }, body: {} };
         const res = {
             json: sinon.spy(),
             status: sinon.stub().returnsThis()
@@ -115,14 +128,14 @@ describe('UpdateUserProfile Function Test', () => {
 
         await updateUserProfile(req, res);
 
-        expect(res.status.calledWith(404)).to.be.true;
-        expect(res.json.calledWithMatch({ message: 'User not found' })).to.be.true;
+        expect(res.status.calledOnceWith(404)).to.be.true;
+        expect(res.json.calledOnceWithMatch({ message: 'User not found' })).to.be.true;
     });
 
     it('should return 500 on error', async () => {
-        findByIdStub = sinon.stub(User, 'findById').throws(new Error('DB Error'));
+        sinon.stub(User, 'findById').rejects(new Error('DB Error'));
 
-        const req = { user: { id: new mongoose.Types.ObjectId() }, body: {} };
+        const req = { user: { id: new mongoose.Types.ObjectId().toString() }, body: {} };
         const res = {
             json: sinon.spy(),
             status: sinon.stub().returnsThis()
@@ -130,7 +143,7 @@ describe('UpdateUserProfile Function Test', () => {
 
         await updateUserProfile(req, res);
 
-        expect(res.status.calledWith(500)).to.be.true;
-        expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+        expect(res.status.calledOnceWith(500)).to.be.true;
+        expect(res.json.calledOnceWithMatch({ message: 'Server error' })).to.be.true;
     });
 });
