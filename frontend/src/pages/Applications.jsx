@@ -1,174 +1,148 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import axiosInstance from '../axiosConfig';
+// src/pages/Applications.jsx
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import RequireAdmin from '../components/RequireAdmin';
+import axiosInstance from '../axiosConfig';
+import RequireAuth from '../components/RequireAuth';
 
 const Applications = () => {
-  const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
-  const [currentApplication, setCurrentApplication] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('All');
+  
+  // Fetch applications
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        if (id) {
-          const response = await axiosInstance.get(`/api/applications/${id}`, {
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
-          setCurrentApplication(response.data);
-        } else {
-          const response = await axiosInstance.get('/api/applications', {
-            headers: { Authorization: `Bearer ${user.token}` },
-          });
-          setApplications(response.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch applications:', error);
-      } finally {
+        const response = await axiosInstance.get('/api/applications', {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        setApplications(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch applications');
         setLoading(false);
       }
     };
-
+    
     fetchApplications();
-  }, [id, user]);
-
-  const updateStatus = async (applicationId, newStatus) => {
-    try {
-      await axiosInstance.patch(
-        `/api/applications/${applicationId}/status`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-      
-      // Refresh the application list or single application view
-      if (id) {
-        setCurrentApplication({ ...currentApplication, status: newStatus });
-      } else {
-        setApplications(
-          applications.map((app) =>
-            app._id === applicationId ? { ...app, status: newStatus } : app
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Failed to update status:', error);
-    }
+  }, [user]);
+  
+  // Handle view application details
+  const handleViewApplication = (id) => {
+    navigate(`/applications/${id}`);
   };
-
-  if (loading) {
-    return <div className="text-center mt-20">Loading...</div>;
-  }
-
-  // Render detailed view for a single application
-  if (currentApplication) {
-    return (
-      <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <h1 className="text-2xl font-bold mb-6">Application Details</h1>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <p className="font-semibold">Application ID:</p>
-            <p>{currentApplication.applicationId}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Status:</p>
-            <p>{currentApplication.status}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Startup Name:</p>
-            <p>{currentApplication.startupName}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Program Applied:</p>
-            <p>{currentApplication.programApplied}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Email:</p>
-            <p>{currentApplication.applicationEmail}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Phone:</p>
-            <p>{currentApplication.applicationPhone}</p>
-          </div>
-        </div>
-        <div className="mb-6">
-          <p className="font-semibold">Description:</p>
-          <p>{currentApplication.description}</p>
-        </div>
-        <div className="mt-6">
-          <p className="font-semibold mb-2">Change Status:</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => updateStatus(currentApplication._id, 'Pending')}
-              className="px-4 py-2 bg-gray-500 text-white rounded"
-            >
-              Pending
-            </button>
-            <button
-              onClick={() => updateStatus(currentApplication._id, 'Under Review')}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Under Review
-            </button>
-            <button
-              onClick={() => updateStatus(currentApplication._id, 'Accepted')}
-              className="px-4 py-2 bg-green-500 text-white rounded"
-            >
-              Accept
-            </button>
-            <button
-              onClick={() => updateStatus(currentApplication._id, 'Rejected')}
-              className="px-4 py-2 bg-red-500 text-white rounded"
-            >
-              Reject
-            </button>
-          </div>
+  
+  // Filter applications by status
+  const filteredApplications = statusFilter === 'All' 
+    ? applications 
+    : applications.filter(app => app.status === statusFilter);
+  
+  // Format date for display
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+  
+  if (loading) return <div className="text-center py-10">Loading applications...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Applications</h1>
+        <div className="flex items-center">
+          <label htmlFor="statusFilter" className="mr-2">Filter by Status:</label>
+          <select 
+            id="statusFilter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="All">All Applications</option>
+            <option value="Pending">Pending</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+          </select>
         </div>
       </div>
-    );
-  }
-
-  // Render list of all applications
-  return (
-    <div className="max-w-6xl mx-auto mt-10 p-6 bg-white shadow-md rounded">
-      <h1 className="text-2xl font-bold mb-6">Applications</h1>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Startup</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {applications.map((application) => (
-            <tr key={application._id}>
-              <td className="px-6 py-4 whitespace-nowrap">{application.applicationId}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{application.startupName}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{application.programApplied}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{application.status}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <a href={`/applications/${application._id}`} className="text-blue-600 hover:text-blue-900">
-                  View
-                </a>
-              </td>
+      
+      <div className="overflow-x-auto bg-white shadow-md rounded">
+        <table className="min-w-full table-auto">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                Startup Name
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                Program
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                Submission Date
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredApplications.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="px-4 py-4 text-center text-sm text-gray-500">
+                  No applications found
+                </td>
+              </tr>
+            ) : (
+              filteredApplications.map((application) => (
+                <tr key={application._id} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {application.startupName}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {application.programApplied}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(application.submissionDate)}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      application.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                      application.status === 'Under Review' ? 'bg-blue-100 text-blue-800' :
+                      application.status === 'Accepted' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {application.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button
+                      onClick={() => handleViewApplication(application._id)}
+                      className="text-indigo-600 hover:text-indigo-900 font-medium"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-// Wrap with RequireAdmin to protect route
-const ProtectedApplications = () => (
-  <RequireAdmin>
-    <Applications />
-  </RequireAdmin>
-);
-
-export default ProtectedApplications;
+// Export with authentication protection
+export default function ProtectedApplications() {
+  return (
+    <RequireAuth>
+      <Applications />
+    </RequireAuth>
+  );
+}

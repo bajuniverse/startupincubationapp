@@ -1,123 +1,177 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../axiosConfig';
+// src/components/ApplicationDetail.jsx
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../axiosConfig';
+import RequireAuth from '../components/RequireAuth';
 
-const ApplicationDetail = ({ application, setApplication }) => {
-  const [isUpdating, setIsUpdating] = useState(false);
+const ApplicationDetail = () => {
+  const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === 'admin';
-
-  const handleStatusChange = async (newStatus) => {
-    if (!isAdmin) return;
+  const [application, setApplication] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  
+  useEffect(() => {
+    const fetchApplicationDetail = async () => {
+      try {
+        const response = await axiosInstance.get(`/api/applications/${id}`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        setApplication(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load application details');
+        setLoading(false);
+      }
+    };
     
-    setIsUpdating(true);
+    fetchApplicationDetail();
+  }, [id, user]);
+  
+  const handleStatusChange = async (newStatus) => {
+    setUpdatingStatus(true);
     try {
       const response = await axiosInstance.patch(
-        `/api/applications/${application._id}/status`,
+        `/api/applications/${id}/status`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${user.token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` }}
       );
       setApplication(response.data);
-    } catch (error) {
-      console.error('Failed to update status:', error);
-      alert('Failed to update application status');
+    } catch (err) {
+      setError('Failed to update application status');
     } finally {
-      setIsUpdating(false);
+      setUpdatingStatus(false);
     }
   };
-
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Under Review': return 'bg-blue-100 text-blue-800';
-      case 'Accepted': return 'bg-green-100 text-green-800';
-      case 'Rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+  
+  if (loading) return <div className="text-center py-10">Loading application details...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+  if (!application) return <div className="text-center py-10">Application not found</div>;
+  
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{application.startupName}</h1>
-        <span className={`px-3 py-1 rounded-full ${getStatusColor(application.status)}`}>
-          {application.status}
-        </span>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6 flex items-center">
+        <button 
+          onClick={() => navigate('/applications')}
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mr-4"
+        >
+          ← Back to Applications
+        </button>
+        <h1 className="text-2xl font-bold">Application Details</h1>
       </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Application Details</h2>
-          <div className="space-y-2">
-            <p><span className="font-medium">Application ID:</span> {application.applicationId}</p>
-            <p><span className="font-medium">Program:</span> {application.programApplied}</p>
-            <p><span className="font-medium">Submitted:</span> {new Date(application.submissionDate).toLocaleDateString()}</p>
-            <p><span className="font-medium">Last Updated:</span> {new Date(application.updatedDateTime).toLocaleDateString()}</p>
+      
+      <div className="bg-white shadow-md rounded p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Startup Information</h2>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Startup Name</p>
+              <p className="font-medium">{application.startupName}</p>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Program Applied</p>
+              <p className="font-medium">{application.programApplied}</p>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Application ID</p>
+              <p className="font-medium">{application.applicationId}</p>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Submission Date</p>
+              <p className="font-medium">{new Date(application.submissionDate).toLocaleDateString()}</p>
+            </div>
+          </div>
+          
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Email</p>
+              <p className="font-medium">{application.applicationEmail}</p>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Phone</p>
+              <p className="font-medium">{application.applicationPhone}</p>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">Current Status</p>
+              <p className={`font-medium ${
+                application.status === 'Pending' ? 'text-yellow-600' :
+                application.status === 'Under Review' ? 'text-blue-600' :
+                application.status === 'Accepted' ? 'text-green-600' :
+                'text-red-600'
+              }`}>
+                {application.status}
+              </p>
+            </div>
           </div>
         </div>
         
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Contact Information</h2>
-          <div className="space-y-2">
-            <p><span className="font-medium">Email:</span> {application.applicationEmail}</p>
-            <p><span className="font-medium">Phone:</span> {application.applicationPhone}</p>
-          </div>
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Description</h2>
+          <p className="text-gray-800 whitespace-pre-line">{application.description}</p>
         </div>
-      </div>
-
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Project Description</h2>
-        <p className="bg-gray-50 p-4 rounded">{application.description}</p>
-      </div>
-
-      {isAdmin && (
-        <div className="mt-8 border-t pt-4">
-          <h2 className="text-lg font-semibold mb-3">Update Status</h2>
+        
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-xl font-semibold mb-4">Update Application Status</h2>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => handleStatusChange('Pending')}
-              disabled={application.status === 'Pending' || isUpdating}
-              className="px-4 py-2 bg-yellow-500 text-white rounded disabled:opacity-50"
+              disabled={application.status === 'Pending' || updatingStatus}
+              className={`px-4 py-2 rounded ${
+                application.status === 'Pending' 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+              }`}
             >
               Mark as Pending
             </button>
             <button
               onClick={() => handleStatusChange('Under Review')}
-              disabled={application.status === 'Under Review' || isUpdating}
-              className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+              disabled={application.status === 'Under Review' || updatingStatus}
+              className={`px-4 py-2 rounded ${
+                application.status === 'Under Review' 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+              }`}
             >
               Mark as Under Review
             </button>
             <button
               onClick={() => handleStatusChange('Accepted')}
-              disabled={application.status === 'Accepted' || isUpdating}
-              className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+              disabled={application.status === 'Accepted' || updatingStatus}
+              className={`px-4 py-2 rounded ${
+                application.status === 'Accepted' 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-green-100 text-green-800 hover:bg-green-200'
+              }`}
             >
               Accept Application
             </button>
             <button
               onClick={() => handleStatusChange('Rejected')}
-              disabled={application.status === 'Rejected' || isUpdating}
-              className="px-4 py-2 bg-red-500 text-white rounded disabled:opacity-50"
+              disabled={application.status === 'Rejected' || updatingStatus}
+              className={`px-4 py-2 rounded ${
+                application.status === 'Rejected' 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+              }`}
             >
               Reject Application
             </button>
           </div>
         </div>
-      )}
-
-      <div className="mt-6">
-        <button 
-          onClick={() => navigate('/applications')} 
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          Back to Applications
-        </button>
       </div>
     </div>
   );
 };
 
-export default ApplicationDetail;
+export default function ProtectedApplicationDetail() {
+  return (
+    <RequireAuth>
+      <ApplicationDetail />
+    </RequireAuth>
+  );
+}
