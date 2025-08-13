@@ -31,4 +31,62 @@ const createApplication = async (req, res) => {
     }
 };
 
-module.exports = { createApplication, generateApplicationId };
+// Get all applications (Read)
+const getAllApplications = async (req, res) => {
+    try {
+        const applications = await Application.find().sort({ submissionDate: -1 });
+        res.status(200).json(applications);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch applications', error: error.message });
+    }
+};
+
+// Get a single application by ID
+const getApplicationById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const application = await Application.findById(id);
+        
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+        
+        res.status(200).json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch application', error: error.message });
+    }
+};
+
+// Update application status
+const updateApplicationStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        // Validate status
+        const validStatuses = Object.values(ApplicationStatus);
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status value' });
+        }
+        
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+        
+        application.status = status;
+        const updatedApplication = await application.save();
+        
+        res.status(200).json(updatedApplication);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update application status', error: error.message });
+    }
+};
+
+module.exports = { 
+    generateApplicationId,
+    createApplication, 
+    getAllApplications,
+    getApplicationById,
+    updateApplicationStatus
+};
