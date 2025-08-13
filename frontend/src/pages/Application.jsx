@@ -1,6 +1,7 @@
 import ApplicationForm from '../components/ApplicationForm';
+import RequireAuth from '../components/RequireAuth';
 
-const SubmitApplication = () => {
+const Application = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">Startup Incubation Application</h1>
@@ -8,9 +9,14 @@ const SubmitApplication = () => {
         Complete the form below to submit your application for our startup incubation program. 
         We will review your application and get back to you within 5 business days.
       </p>
-      <ApplicationForm />
     </div>
   );
 };
 
-export default SubmitApplication;
+export default function ProtectedApplication() {
+  return (
+    <RequireAuth>
+      <Application />
+    </RequireAuth>
+  );
+};
