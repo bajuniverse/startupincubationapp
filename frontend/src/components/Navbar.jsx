@@ -18,8 +18,6 @@ const Navbar = () => {
           <>
             <Link to="/tasks" className="mr-4">Tasks</Link>
             <Link to="/applications" className="mr-4">Applications</Link>
-            <Link to="/profile" className="mr-4">Programs</Link>
-            <Link to="/profile" className="mr-4">Mentors</Link>
             <Link to="/profile" className="mr-4">Startups</Link>
             <Link to="/profile" className="mr-4">Profile</Link>
             
