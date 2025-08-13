@@ -83,10 +83,39 @@ const updateApplicationStatus = async (req, res) => {
     }
 };
 
+// backend/controllers/applicationController.js
+
+// Delete application
+const deleteApplication = async (req, res) => {
+    try {
+        const application = await Application.findById(req.params.id);
+        
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+        
+        // Only allow admin to delete it
+        // if (req.user.role !== 'admin' && application.userId.toString() !== req.user.id)
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to delete this application' });
+        }
+        
+        await Application.deleteOne({ _id: req.params.id });
+        res.json({ message: 'Application deleted successfully' });
+    } catch (error) {
+        console.error('Delete application error:', error);
+        res.status(500).json({ 
+            message: 'Failed to delete application', 
+            error: error.message 
+        });
+    }
+};
+
 module.exports = { 
     generateApplicationId,
     createApplication, 
     getAllApplications,
     getApplicationById,
-    updateApplicationStatus
+    updateApplicationStatus,
+    deleteApplication
 };

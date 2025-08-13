@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 import RequireAuth from '../components/RequireAuth';
+import DeleteApplicationButton from './DeleteApplicationButton';
 
 const ApplicationDetail = () => {
   const { id } = useParams();
@@ -44,6 +45,10 @@ const ApplicationDetail = () => {
     } finally {
       setUpdatingStatus(false);
     }
+  };
+
+  const handleDeleteSuccess = () => {
+    navigate('/applications');
   };
   
   if (loading) return <div className="text-center py-10">Loading application details...</div>;
@@ -160,6 +165,17 @@ const ApplicationDetail = () => {
             >
               Reject Application
             </button>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-xl font-semibold text-red-600">Remove Application</h2>
+          <p className="text-sm text-gray-600 mb-4">This action cannot be undone.</p>
+          <div className="flex flex-wrap gap-2">
+              <DeleteApplicationButton 
+                applicationId={application._id}
+                onDelete={handleDeleteSuccess}
+              />
           </div>
         </div>
       </div>
