@@ -3,7 +3,6 @@ import { createContext, useState, useContext, useEffect } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -17,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     if (storedUser && !user) {
       setUser(JSON.parse(storedUser));
-    };
+    }
   }, [user]);
 
   // Login function
@@ -26,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
   }
 
-  // Logout function 
+  // Logout function - no longer takes navigate parameter
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
