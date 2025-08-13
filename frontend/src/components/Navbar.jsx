@@ -17,24 +17,33 @@ const Navbar = () => {
         {user ? (
           <>
             <Link to="/tasks" className="mr-4">Tasks</Link>
-            <Link to="/application" className="mr-4">Applications</Link>
+            <Link to="/applications" className="mr-4">Applications</Link>
             <Link to="/profile" className="mr-4">Programs</Link>
             <Link to="/profile" className="mr-4">Mentors</Link>
             <Link to="/profile" className="mr-4">Startups</Link>
             <Link to="/profile" className="mr-4">Profile</Link>
-            <button
+            
+            <Link to="/applications/apply" 
+              className="bg-green-500 px-4 py-2 mx-2 rounded hover:bg-green-700">
+                Apply for Program
+            </Link> 
+            <Link
               onClick={handleLogout}
               className="bg-red-500 px-4 py-2 rounded hover:bg-red-700"
             >
               Logout
-            </button>
+            </Link>
           </>
         ) : (
           <>
+            <Link to="/applications/apply" 
+              className="bg-green-500 px-4 py-2 mx-2 rounded hover:bg-green-700">
+                Apply for Program
+            </Link> 
             <Link to="/login" className="mr-4">Login</Link>
             <Link
               to="/register"
-              className="bg-green-500 px-4 py-2 rounded hover:bg-green-700"
+              className="bg-gray-500 px-4 py-2 rounded hover:bg-gray-700"
             >
               Register
             </Link>

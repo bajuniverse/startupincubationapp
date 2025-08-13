@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 import RequireAuth from '../components/RequireAuth';
+import { UserRole } from '../constants/UserRole';
 
 const Profile = () => {
   const { user } = useAuth(); // Access user token from context
@@ -66,6 +67,8 @@ const Profile = () => {
     return <div className="text-center mt-20">Loading...</div>;
   }
 
+  const canEditRole = user && user.rrole === UserRole.ADMIN;
+
   return (
     <div className="max-w-md mx-auto mt-20">
       <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded">
@@ -88,7 +91,7 @@ const Profile = () => {
           value={formData.role}
           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
-          disabled={user.role !== "admin"}
+          disabled={!canEditRole}
         >
           <option value="admin">Admin</option>
           <option value="mentor">Mentor</option>
