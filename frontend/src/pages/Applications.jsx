@@ -1,4 +1,4 @@
-import ApplicationForm from '../components/ApplicationForm';
+import ApplicationForm from '../components/forms/ApplicationForm';
 import RequireAuth from '../components/RequireAuth';
 
 const Application = () => {

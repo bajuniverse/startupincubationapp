@@ -4,8 +4,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedProfile from './pages/Profile';
 import ProtectedTasks from './pages/Tasks';
-import ProtectedApplications from './pages/Application';
-import ApplicationForm from './components/ApplicationForm';
+import ProtectedApplications from './pages/Applications';
+import ApplicationForm from './components/forms/ApplicationForm';
 
 function App() {
   return (
