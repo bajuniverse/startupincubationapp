@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const UserRole = {
     ADMIN: 'Admin',
     MENTOR: 'Mentor',
-    APPLICANT: 'Applicant',
+    STARTUP: 'Startup',
 };
 
 const userSchema = new mongoose.Schema({

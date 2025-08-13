@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
-import RequireAuth from '../components/RequireAuth';
+import RequireAdmin from '../components/RequireAdmin';
 
 const Applications = () => {
   const { user } = useAuth();
@@ -141,8 +141,8 @@ const Applications = () => {
 // Export with authentication protection
 export default function ProtectedApplications() {
   return (
-    <RequireAuth>
+    <RequireAdmin>
       <Applications />
-    </RequireAuth>
+    </RequireAdmin>
   );
 }

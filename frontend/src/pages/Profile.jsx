@@ -93,9 +93,9 @@ const Profile = () => {
           className="w-full mb-4 p-2 border rounded"
           disabled={!canEditRole}
         >
-          <option value="admin">Admin</option>
-          <option value="mentor">Mentor</option>
-          <option value="applicant">Applicant</option>
+          <option value={UserRole.ADMIN}>Admin</option>
+          <option value={UserRole.MENTOR}>Mentor</option>
+          <option value={UserRole.STARTUP}>Startup</option>
         </select>
         <input
           type="text"
