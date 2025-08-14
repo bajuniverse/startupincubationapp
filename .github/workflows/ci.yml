@@ -1,15 +1,9 @@
-name: CI
+name: Backend CI # Define the name of the CI workflow
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - 'package.json'
-      - '.github/workflows/ci.yml'
-
+on: # Define the event that triggers the workflow
+  push: # Trigger the workflow on a push event
+    branches: # Specify the branches to monitor
+      - main  # Trigger CI on pushes to the main branch
 
 jobs:
   test:
@@ -21,7 +15,7 @@ jobs:
         node-version: [22] # Test on multiple Node.js versions
 
 
-    # environment: MONGO_URI
+    environment: MONGO_URI
 
     steps:
     - name: Checkout Code
@@ -29,7 +23,7 @@ jobs:
 
     - name: Set CI environment variable to false
       run: echo "CI=false" >> $GITHUB_ENV
-      
+
     # Set up Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -52,7 +46,20 @@ jobs:
     # Install dependencies for backend
     - name: Install Backend Dependencies
       working-directory: ./backend
-      run: npm install
+      run: | 
+       npm install --global yarn
+       yarn --version
+       yarn install
+      
+    # Install dependencies for frontend
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: |
+        df -h
+        sudo rm -rf ./build
+        yarn install
+        yarn run build
+
 
     # Run backend tests
     - name: Run Backend Tests
