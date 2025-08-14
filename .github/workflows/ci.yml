@@ -2,9 +2,7 @@ name: Startup Incubation App CI
 
 on:
   push:
-    branches: [main]
-  pull_request: 
-    branches: [main]
+    branches: [main] # Trigger CI on pushes on the main branch
 
 jobs:
   test:
@@ -15,15 +13,14 @@ jobs:
       matrix:
         node-version: [22]
 
-
     environment: MONGO_URI
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set CI environment variable to false
-      run: echo "CI=false" >> $GITHUB_ENV
+    # - name: Set CI environment variable to false
+    #   run: echo "CI=false" >> $GITHUB_ENV
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -49,15 +46,15 @@ jobs:
       run: | 
        npm install --global yarn
        yarn --version
-       yarn install
+       npm install
       
     # Install dependencies for frontend
     - name: Install Frontend Dependencies
       working-directory: ./frontend
       run: |
         df -h
-        sudo rm -rf ./build
         yarn install
+        sudo rm -rf ./build
         yarn run build
 
     # Run backend tests
@@ -65,13 +62,25 @@ jobs:
       working-directory: ./backend
       run: yarn test
 
+    - name: Clean install from lockfile
+      run: npm ci
+
     - name: Create backend .env file
       working-directory: ./backend
       run: | 
+        touch .env
         echo "${{ secrets.PROD }}" > .env
 
-    - name: start PM2 processes
-      run: pm2 start all
-
+    - name: Show PM2 process list
+      run: pm2 list || true
+    
+    - working-directory: ./backend
+      run: |
+        pm2 start "npm run start" --name="backend"
+    
+    - working-directory: ./frontend
+      run: |
+        pm2 serve build/ 3000 --name="frontend" --spa    
+        
     - name: restart PM2 processes
       run: pm2 restart all
