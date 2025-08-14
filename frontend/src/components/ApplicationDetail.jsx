@@ -120,24 +120,28 @@ const ApplicationDetail = () => {
     setEditingFeedbackId(feedback._id);
   };
 
-  const handleDeleteFeedback = async (feedbackId) => {
-    if (!window.confirm('Are you sure you want to delete this feedback?')) {
-      return;
-    }
-    
-    try {
-      await axiosInstance.delete(`/api/feedback/${feedbackId}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-      
-      setFeedbacks(feedbacks.filter(feedback => feedback._id !== feedbackId));
-      
-      if (editingFeedbackId === feedbackId) {
-        setEditingFeedbackId(null);
-        setNewFeedback({ comment: '', rating: 0 });
+  const handleDeleteFeedback = async (feedbackId, feedback) => {
+    if (feedback.user._id === user.id) {
+      if (!window.confirm('Are you sure you want to delete this feedback?')) {
+        return;
       }
-    } catch (error) {
-      setFeedbackError('Failed to delete feedback');
+      
+      try {
+        await axiosInstance.delete(`/api/feedback/${feedbackId}`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        
+        setFeedbacks(feedbacks.filter(feedback => feedback._id !== feedbackId));
+        
+        if (editingFeedbackId === feedbackId) {
+          setEditingFeedbackId(null);
+          setNewFeedback({ comment: '', rating: 0 });
+        }
+      } catch (error) {
+        setFeedbackError('Failed to delete feedback');
+      }
+    } else {
+      setFeedbackError('You can only delete your own feedback');
     }
   };
 
@@ -349,7 +353,7 @@ const ApplicationDetail = () => {
                       )}
                     </div>
                     
-                    {feedback.user?._id === user._id && (
+                    {feedback.user._id === user.id && (
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEditFeedback(feedback)}
@@ -358,10 +362,10 @@ const ApplicationDetail = () => {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDeleteFeedback(feedback._id)}
+                          onClick={() => handleDeleteFeedback(feedback._id, feedback)}
                           className="text-red-600 hover:text-red-800"
                         >
-                          Delete
+                          Remove
                         </button>
                       </div>
                     )}
