@@ -51,7 +51,8 @@ jobs:
     - name: Install Backend Dependencies
       working-directory: ./backend
       run: | 
-       yarn install --frozen-lockfile
+       yarn --version
+       yarn install
       
     # Install dependencies for frontend
     - name: Install Frontend Dependencies
@@ -59,8 +60,8 @@ jobs:
       run: |
         df -h
         sudo rm -rf ./build
-        yarn install --frozen-lockfile
-        yarn build
+        yarn install
+        yarn run build
 
 
     # Run backend tests
