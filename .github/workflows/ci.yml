@@ -74,13 +74,8 @@ jobs:
     - name: Show PM2 process list
       run: pm2 list || true
     
-    - working-directory: ./backend
-      run: |
-        pm2 start "npm run start" --name="backend"
-    
-    - working-directory: ./frontend
-      run: |
-        pm2 serve build/ 3000 --name="frontend" --spa    
+    - name: Start all PM2 processes
+      run: pm2 start all
         
     - name: restart PM2 processes
       run: pm2 restart all
