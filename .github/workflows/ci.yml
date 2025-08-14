@@ -1,9 +1,10 @@
-name: Backend CI # Define the name of the CI workflow
+name: Startup Incubation App CI
 
-on: # Define the event that triggers the workflow
-  push: # Trigger the workflow on a push event
-    branches: # Specify the branches to monitor
-      - main  # Trigger CI on pushes to the main branch
+on:
+  push:
+    branches: [main]
+  pull_request: 
+    branches: [main]
 
 jobs:
   test:
@@ -12,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22] # Test on multiple Node.js versions
+        node-version: 22
 
 
     environment: MONGO_URI
@@ -24,14 +25,16 @@ jobs:
     - name: Set CI environment variable to false
       run: echo "CI=false" >> $GITHUB_ENV
 
-    # Set up Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+        cache: yarn
+
+    - name: Enable Corepack (Yarn)
+      run: corepack enable
 
     - name: Print Env Secret
-
       env:
         MONGO_URI: ${{ secrets.MONGO_URI }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -41,15 +44,14 @@ jobs:
         echo "Secret 2 is: $JWT_SECRET"
         echo "Secret 3 is: $PORT"
       
-    - run: pm2 stop all
+    - name: Stop alll PM2 processes
+      run: pm2 stop all || true
 
     # Install dependencies for backend
     - name: Install Backend Dependencies
       working-directory: ./backend
       run: | 
-       npm install --global yarn
-       yarn --version
-       yarn install
+       yarn install --frozen-lockfile
       
     # Install dependencies for frontend
     - name: Install Frontend Dependencies
@@ -57,28 +59,22 @@ jobs:
       run: |
         df -h
         sudo rm -rf ./build
-        yarn install
-        yarn run build
+        yarn install --frozen-lockfile
+        yarn build
 
 
     # Run backend tests
     - name: Run Backend Tests
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        PORT: ${{ secrets.PORT }}
       working-directory: ./backend
-      run: npm test
+      run: yarn test
 
-
-    - run: npm ci
-    - run: | 
-        cd ./backend
-        touch .env
+    - name: Create backend .env file
+      working-directory: ./backend
+      run: | 
         echo "${{ secrets.PROD }}" > .env
 
-    - run: pm2 start all
+    - name: start PM2 processes
+      run: pm2 start all
 
-    - run: pm2 restart all
-
-# testing ci
+    - name: restart PM2 processes
+      run: pm2 restart all

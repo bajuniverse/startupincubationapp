@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5001', // local ..shuda updated
-  // baseURL: 'http://54.79.212.150:5001', // live
+  // baseURL: 'http://localhost:5001', // local ..shuda updated
+  baseURL: 'http://16.176.182.119:5001', // live
   headers: { 'Content-Type': 'application/json' },
 });
 
