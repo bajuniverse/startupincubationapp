@@ -6,21 +6,40 @@ const applicationController = require('../controllers/applicationController');
 const { expect } = chai;
 
 describe('CreateApplication Function Test', () => {
+    let req, res;
+
+    beforeEach(() => {
+        req = { body: {} };
+        res = {
+            status: sinon.stub().returnsThis(),
+            json: sinon.stub()
+        };
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
 
     it('should create a new application successfully', async () => {
 
-        const mockApplication = {
-            _id: new mongoose.Types.ObjectId(),
+        req.body = {
             applicationId: 'APP12345',
             applicationEmail: 'test@example.com',
             applicationPhone: '1234567890',
             programApplied: 'Startup Accelerator',
             startupName: 'Test Startup',
-            description: 'This is a test startup',
+            description: 'This is a test startup'
+        };
+
+        const mockApplication = {
+            _id: new mongoose.Types.ObjectId(),
+            applicationId: 'app-123456-abcd12',
+            ...req.body,
             status: ApplicationStatus.PENDING
         };
         
-        saveStub = sinon.stub(Application.prototype, 'save').resolves(mockApplication);
+        sinon.stub(Application, 'findOne').resolves(null);
+        sinon.stub(Application.prototype, 'save').resolves(mockApplication);
 
         await applicationController.createApplication(req, res);
 
@@ -29,6 +48,16 @@ describe('CreateApplication Function Test', () => {
     });
 
     it('should return 500 if there is an error during creation', async () => {
+        req.body = {
+            applicationId: 'APP12345',
+            applicationEmail: 'test@example.com',
+            applicationPhone: '1234567890',
+            programApplied: 'Startup Accelerator',
+            startupName: 'Test Startup',
+            description: 'This is a test startup'
+        };
+
+        sinon.stub(Application, 'findOne').resolves(null);
         sinon.stub(Application.prototype, 'save').rejects(new Error('Database error'));
 
         await applicationController.createApplication(req, res);
@@ -42,9 +71,11 @@ describe('CreateApplication Function Test', () => {
     });
 
     it('should validate required fields', async () => {
-        req.body = { description: 'This is a test startup' }; // Missing required fields
+        req.body = { description: 'This is a test startup' };
         const validationError = new Error('Validation error');
         validationError.name = 'ValidationError';
+
+        sinon.stub(Application, 'findOne').resolves(null);
         sinon.stub(Application.prototype, 'save').rejects(validationError);
 
         await applicationController.createApplication(req, res);
