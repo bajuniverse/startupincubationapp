@@ -44,8 +44,6 @@ jobs:
     - name: Install Backend Dependencies
       working-directory: ./backend
       run: | 
-       npm install --global yarn
-       yarn --version
        npm install
       
     # Install dependencies for frontend
@@ -60,10 +58,10 @@ jobs:
     # Run backend tests
     - name: Run Backend Tests
       working-directory: ./backend
-      run: yarn test
+      run: npm test
 
-    - name: Clean install from lockfile
-      run: npm ci
+    # - name: Clean install from lockfile
+    #   run: npm ci
 
     - name: Create backend .env file
       working-directory: ./backend
