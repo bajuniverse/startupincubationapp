@@ -1,5 +1,5 @@
 const Feedback = require('../models/Feedback');
-const Application = require('../models/Application');
+const { Application } = require('../models/Application');
 
 // Get all feedback for an application
 const getFeedbackByApplication = async (req, res) => {
