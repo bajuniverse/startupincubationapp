@@ -1,6 +1,5 @@
-// src/components/ApplicationForm.jsx
 import { useState } from 'react';
-import axiosInstance from '../../axiosConfig';
+import axiosInstance from '../axiosConfig';
 
 const ApplicationForm = () => {
 

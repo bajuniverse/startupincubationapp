@@ -5,7 +5,7 @@ import Register from './pages/Register';
 import ProtectedProfile from './pages/Profile';
 import ProtectedTasks from './pages/Tasks';
 import ProtectedApplications from './pages/Applications';
-import ApplicationForm from './components/forms/ApplicationForm';
+import ApplicationForm from './components/ApplicationForm';
 import ProtectedApplicationDetail from './components/ApplicationDetail';
 import Unauthorized from './pages/Unauthorized';
 
