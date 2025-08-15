@@ -19,9 +19,6 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    # - name: Set CI environment variable to false
-    #   run: echo "CI=false" >> $GITHUB_ENV
-
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -59,9 +56,6 @@ jobs:
     - name: Run Backend Tests
       working-directory: ./backend
       run: npm test
-
-    # - name: Clean install from lockfile
-    #   run: npm ci
 
     - name: Create backend .env file
       working-directory: ./backend
