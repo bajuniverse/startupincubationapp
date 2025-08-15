@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedProfile from './pages/Profile';
-import ProtectedTasks from './pages/Tasks';
 import ProtectedApplications from './pages/Applications';
 import ApplicationForm from './components/ApplicationForm';
 import ProtectedApplicationDetail from './components/ApplicationDetail';
@@ -16,7 +15,6 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/tasks" element={<ProtectedTasks />} />
         <Route path="/applications" element={<ProtectedApplications />} />
         <Route path="/applications/:id" element={<ProtectedApplicationDetail />} />
         <Route path="/applications/apply" element={<ApplicationForm />} />
