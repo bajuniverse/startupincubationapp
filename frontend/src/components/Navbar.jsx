@@ -17,7 +17,7 @@ const Navbar = () => {
         {user ? (
           <>
             <Link to="/applications" className="mr-4">Applications</Link>
-            <Link to="/profile" className="mr-4">Startups</Link>
+            <Link to="/startup" className="mr-4">Startup</Link>
             <Link to="/profile" className="mr-4">Profile</Link>
             
             <Link to="/applications/apply" 
