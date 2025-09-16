@@ -19,6 +19,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.14",
     "request": "^2.88.2",
+    "startup-incubation-app": "file:..",
     "task-manager": "file:.."
   },
   "devDependencies": {
